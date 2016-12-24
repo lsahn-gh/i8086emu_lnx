@@ -1,0 +1,27 @@
+#this is an example ... it'll be copied to your homedir/.i8086emu/emu.cfg automatically on start
+
+#startaddress program (Hex)
+PROGSTARTADR=00100
+
+#romfile
+ROMFILE=@prefix@/share/i8086emu/rom.bin
+
+#startaddress (Hex)
+ROMSTARTADR=0C000
+
+#you should only use ROMFILE _or_ COREDUMP
+
+#coredump-file
+#COREDUMP=@prefix@/share/i8086emu/core.dmp
+
+#use xft
+#only needed on some b0rked systems...
+USEXFT=YES
+
+####Devices#####
+DEVICECOUNT=3
+DEVICE0=@prefix@/lib/i8086emu/i8086pic.so
+DEVICE1=@prefix@/lib/i8086emu/i8086pit.so
+DEVICE2=@prefix@/lib/i8086emu/i8086beep.so
+#DEVICE3=@prefix@/lib/i8086emu/i8086sic.so
+#DEVICE4=@prefix@/lib/i8086emu/i8086vga.so

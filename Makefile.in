@@ -1,0 +1,50 @@
+EMUSRC=src/*.c src/*.h src/disasm/*.c src/disasm/*.h src/emu.cfg.in src/rom.bin src/core.dmp src/devices/*.c src/devices/*.h src/i8086icon.png
+EMUEX=asm/kitt.asm asm/peme-clock.asm asm/beep.asm asm/fire.asm
+EMUINST=configure Makefile.in config.guess install-sh mkinstalldirs src/Makefile.in
+EMUDOCS=NEWS README AUTHORS ChangeLog INSTALL COPYING
+DEVICES=src/devices/i8086pic.so src/devices/i8086pit.so src/devices/i8086sic.so src/devices/i8086beep.so
+VERS="@vers@"
+subdirs = src
+
+all:
+	@for dir in ${subdirs}; do cd $$dir && make && cd ..;done;
+
+clean:
+	@for dir in ${subdirs}; do cd $$dir && make clean && cd ..;done;
+
+distclean:
+	@for dir in ${subdirs}; do cd $$dir && make distclean && cd ..;done;
+	/bin/rm -f Makefile config.h config.status config.cache config.log
+
+install:
+	cd src && make install
+
+uninstall:
+	cd src && make uninstall
+
+dist: $(EMUSRC) $(EMUDOCS) $(EMUINST) $(EMUEX)
+	@echo
+	@echo "->Note: The version for now is hacked into Makefile.in as"
+	@echo "->" $(VERS)
+	@echo
+	@echo "->copying all release files to the directory " i8086emu-src-$(VERS)
+	@echo
+	tar cf - $(EMUSRC) $(EMUINST) $(EMUDOCS) $(EMUEX)| gzip > i8086emu-src-$(VERS).tar.gz	
+	-mkdir i8086emu-src-$(VERS)
+	
+	gzcat i8086emu-src-$(VERS).tar.gz | (cd i8086emu-src-$(VERS); tar xf -)
+	for n in `ls -1 i8086emu-src-$(VERS)/src/*.c`; do sed -i -f HEADER.SED $$n;done;
+	for n in `ls -1 i8086emu-src-$(VERS)/src/*.h`; do sed -i -f HEADER.SED $$n;done;
+	for n in `ls -1 i8086emu-src-$(VERS)/src/devices/*.c`; do sed -i -f HEADER.SED $$n;done;
+	for n in `ls -1 i8086emu-src-$(VERS)/src/devices/*.h`; do sed -i -f HEADER.SED $$n;done;
+	/bin/rm -f i8086emu-src-$(VERS).tar.gz
+	@echo
+	@echo "->making the compressed tar file " i8086emu-src-$(VERS).tar.gz
+	@echo
+	tar cf - i8086emu-src-$(VERS) | gzip > i8086emu-src-$(VERS).tar.gz
+	@echo
+#	@echo "->placing the snapshot for anonymous ftp in " $(FTPDIR)
+#	@echo
+#	rcp xyplot-$(VERS).tar.gz $(FTPDIR)
+	echo "->removnig the temporary directory " i8086emu-src-$(VERS)
+	/bin/rm -rf i8086emu-src-$(VERS)             # remove the old directory

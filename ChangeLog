@@ -1,0 +1,17 @@
+* i8086emu 0.9.2 (31.3.04) from memphis
+  - /etc/i8086emu/emu.cfg.example added - will be copied to 
+    ~/.i8086emu/emu.cfg automatically on start
+  - applied patch from daniel black
+  - 1mb is now accessable with the gui-elements
+  - added vga-plugin (only standard mode so far)
+
+* i8086emu 0.9.1
+  - now the maximum of 1mb memory is accessable
+  - added --version --help to i8086text
+  - working ebuild for Gentoo
+  - created standard GNU directory structure
+  - added GNU Files INSTALL, README, NEWS, ChangeLog
+  - added usegtk option for passing to configure (./configure usegtk=1 - makes GTK-Interface - standard is set)
+  - using autoconf for making or not making the GTK-Interface
+
+* i8086emu 0.9: first release

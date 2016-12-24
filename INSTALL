@@ -1,0 +1,18 @@
+Howto install the i8086emu:
+
+Basic Installation
+==================
+
+* so far a "./configure && make && make install" should do it for you
+  (of course you need to be root to do "make install" depending on
+  install prefix)
+* for not making the gui version try "./configure usegtk=0"
+* for changing the install prefix do "./configure --prefix=/foo/bar"
+* cfg will be placed in "~/.emu.cfg"
+
+
+Uninstall
+=========
+
+* dude don't do it ;op *hrhr* ... if you're really sure that you have no 
+  need for our emu ... do "make uninstall".

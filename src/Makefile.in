@@ -1,0 +1,200 @@
+#@configure_input@
+#Compileroptionen
+
+SHELL = /bin/sh
+subdirs = @subdirs@
+top_srcdir = @top_srcdir@
+srcdir = @srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+bindir = @bindir@
+datadir = @datadir@/@PACKAGE@
+pixdir = @prefix@/share/pixmaps
+examplesdir = @infodir@/@PACKAGE@/examples
+infodir = @infodir@/@PACKAGE@
+libdir = @libdir@/@PACKAGE@
+mandir = @mandir@
+sysconfdir= @sysconfdir@/@PACKAGE@
+INSTALL=cp
+
+WIN32=`if [ "$(TERM)" = "cygwin" ]; then echo "-D _WIN32"; fi;`
+CFLAGS=@CFLAGS@
+CGUIFLGS=`if [ "$(TERM)" = "cygwin" ]; then echo "-mwindows"; fi;`
+CLIBS=`if [ "$(TERM)" != "cygwin" ]; then echo "-ldl"; fi;`
+EMUOBJ=i8086proc.o i8086error.o i8086datatrans.o i8086emufuncs.o i8086arithmetic.o i8086control.o i8086logic.o i8086util.o i8086controltrans.o i8086wrapper.o i8086messages.o i8086strings.o i8086config.o disasm/*.o i8086devices.o
+EMUSRC=*.c *.h disasm/*.c disasm/*.h emu.cfg rom.bin devices/*.c devices/*.h
+EMUEX=../asm/*.asm
+EMUINST=../configure Makefile.in ../config.guess ../install-sh ../mkinstalldirs
+EMUDOCS=../NEWS ../README ../AUTHORS ../ChangeLog ../COPYING
+DEVICES=devices/i8086pic.so devices/i8086pit.so devices/i8086sic.so devices/i8086beep.so devices/i8086vga.so
+VERS=@vers@
+
+
+all:
+	if [ "@usegtk@" != "0" ]; then make i8086gui;else echo "GTK GUI is disabled - may be you lack of gtk!";fi;
+	if [ @NCURSES_SYSTEM@ -eq 1 ]; then make i8086text;fi;
+
+i8086gui: ${DEVICES} i8086gui.o i8086gui_emufuncs.o i8086gui_error.o i8086gui_util.o i8086gui_paint.o ${EMUOBJ}
+	gcc ${CFLAGS} ${CGUIFLGS} -o i8086gui i8086gui.o i8086gui_emufuncs.o i8086gui_error.o i8086gui_util.o i8086gui_paint.o ${EMUOBJ} `pkg-config --cflags gtk+-2.0` `pkg-config --libs gtk+-2.0`
+i8086text: i8086text.o ${EMUOBJ} ${DEVICES}
+	gcc ${CFLAGS} -o i8086text i8086text.o ${EMUOBJ} -lncurses ${CLIBS}
+
+i8086devices: i8086text ${DEVICES}
+
+#GUI
+i8086gui.o: i8086gui.c i8086gui.h
+	gcc ${CFLAGS} ${WIN32} -DPIXDIR=\"$(pixdir)\" -DVERSION_NUMBER=\"$(VERS)\" -D GTK_ENABLE_BROKEN -c i8086gui.c `pkg-config --cflags gtk+-2.0`
+	
+i8086gui_emufuncs.o: i8086gui_emufuncs.c i8086gui_emufuncs.h
+	gcc ${CFLAGS} -c i8086gui_emufuncs.c `pkg-config --cflags gtk+-2.0`
+
+i8086gui_error.o: i8086gui_error.c i8086gui_error.h
+	gcc ${CFLAGS} -c i8086gui_error.c	`pkg-config --cflags gtk+-2.0`
+	
+i8086gui_util.o: i8086gui_util.c i8086gui_util.h
+	gcc ${CFLAGS} ${WIN32} -D GTK_ENABLE_BROKEN -c i8086gui_util.c	`pkg-config --cflags gtk+-2.0`
+	
+i8086gui_paint.o: i8086gui_paint.c i8086gui_paint.h
+	gcc ${CFLAGS} -DPIXDIR=\"$(pixdir)\" -DVERSION_NUMBER=\"$(VERS)\" -D GTK_ENABLE_BROKEN -c ${WIN32} i8086gui_paint.c	`pkg-config --cflags gtk+-2.0`
+
+#GUI-END
+
+#EMU
+
+i8086text.o: i8086text.c
+	gcc ${CFLAGS} -DVERSION_NUMBER=\"$(VERS)\" -c i8086text.c
+
+i8086proc.o: i8086proc.c i8086proc.h
+	gcc ${CFLAGS} -DVERSION_NUMBER=\"$(VERS)\" -c i8086proc.c
+
+i8086error.o: i8086error.c
+	gcc ${CFLAGS} ${WIN32} -c i8086error.c
+
+i8086datatrans.o: i8086datatrans.c
+	gcc ${CFLAGS} -c i8086datatrans.c
+
+i8086emufuncs.o: i8086emufuncs.c
+	gcc ${CFLAGS} -c i8086emufuncs.c
+
+i8086arithmetic.o: i8086arithmetic.c
+	gcc ${CFLAGS} -c i8086arithmetic.c
+
+i8086control.o: i8086control.c
+	gcc ${CFLAGS} -c i8086control.c
+
+i8086logic.o: i8086logic.c
+	gcc ${CFLAGS} -c i8086logic.c
+
+i8086util.o: i8086util.c
+	gcc ${CFLAGS} -c i8086util.c
+
+i8086controltrans.o: i8086controltrans.c
+	gcc ${CFLAGS} -c i8086controltrans.c
+
+i8086wrapper.o: i8086wrapper.c
+	gcc ${CFLAGS} -c i8086wrapper.c
+
+i8086messages.o: i8086messages.c i8086messages.h
+	gcc ${CFLAGS} ${WIN32} -c  i8086messages.c
+
+i8086strings.o: i8086strings.c i8086strings.h
+	gcc ${CFLAGS} -c i8086strings.c
+
+disasm/*.o: disasm/disasm.c  disasm/insnsa.c disasm/insnsd.c disasm/regs.c disasm/regvals.c disasm/sync.c
+	gcc ${CFLAGS} -c disasm/disasm.c -o disasm/disasm.o
+	gcc ${CFLAGS} -c disasm/insnsa.c -o disasm/insnsa.o
+	gcc ${CFLAGS} -c disasm/insnsd.c -o disasm/insnsd.o
+	gcc ${CFLAGS} -c disasm/regs.c -o disasm/regs.o
+	gcc ${CFLAGS} -c disasm/regvals.c -o disasm/regvals.o
+	gcc ${CFLAGS} -c disasm/sync.c -o disasm/sync.o
+
+i8086config.o: i8086config.c i8086config.h
+	gcc ${CFLAGS} ${WIN32} -DDATADIR=\"$(DESTDIR)$(sysconfdir)\" -c i8086config.c
+
+i8086devices.o: i8086devices.c i8086devices.h
+	gcc ${CFLAGS} -c -DVERSION_NUMBER=\"$(VERS)\" i8086devices.c
+
+#Devices
+devices/i8086pic.so: devices/i8086pic.c devices/i8086pic.h i8086error.o i8086messages.o i8086util.o
+	gcc ${CFLAGS} -shared -fPIC devices/i8086pic.c i8086error.o i8086messages.o i8086util.o -o devices/i8086pic.so
+	
+devices/i8086pit.so: devices/i8086pit.c devices/i8086pit.h i8086error.o i8086messages.o i8086util.o
+	gcc ${CFLAGS} -shared -fPIC devices/i8086pit.c i8086error.o i8086messages.o i8086util.o -o devices/i8086pit.so -lpthread
+
+devices/i8086beep.so: devices/i8086beep.c i8086error.o i8086messages.o i8086util.o
+	gcc ${CFLAGS} ${WIN32} -shared -fPIC devices/i8086beep.c i8086error.o i8086messages.o i8086util.o -o devices/i8086beep.so
+	
+devices/i8086sic.so: devices/i8086sic.c i8086error.o i8086messages.o
+	if [ "@usegtk@" != "0" ]; then gcc ${CFLAGS} ${WIN32} -shared -fPIC devices/i8086sic.c i8086error.o i8086messages.o -o devices/i8086sic.so `pkg-config --cflags gtk+-2.0` `pkg-config --libs gtk+-2.0`;fi;
+
+devices/i8086vga.so: devices/i8086vga.c i8086error.o i8086messages.o
+	if [ 1 -eq 1 ]; then gcc ${CFLAGS} ${WIN32} -shared -fPIC devices/i8086vga.c i8086error.o i8086messages.o -o devices/i8086vga.so -lpthread `pkg-config --cflags gtk+-2.0` `pkg-config --libs gtk+-2.0`;fi;
+#Devices-End
+
+
+
+examples:
+	nasm examples/clockmem.asm
+	nasm examples/kitt.asm
+	nasm examples/beep.asm
+
+check:
+	echo "This is not implemented right now!"
+
+clean:
+	rm -f *.o devices/*.so disasm/*.o i8086text i8086gui
+cleangui:
+	rm -f i8086gui*.o i8086gui
+
+distclean: clean
+	/bin/rm -f Makefile config.h config.status config.cache config.log
+#@for dir in ${subdirs}; do \
+# (cd $$dir && $(MAKE) distclean) \
+# || case "$(MFLAGS)" in *k*) fail=yes;; *) exit 1;; esac; \
+#done && test -z "$$fail"
+
+
+
+install:all
+	$(top_srcdir)/mkinstalldirs $(DESTDIR)$(bindir)
+	$(top_srcdir)/mkinstalldirs $(DESTDIR)$(devicesdir)
+	$(top_srcdir)/mkinstalldirs $(DESTDIR)$(examplesdir)
+	$(top_srcdir)/mkinstalldirs $(DESTDIR)$(pixdir)
+	$(top_srcdir)/mkinstalldirs $(DESTDIR)$(infodir)
+	$(top_srcdir)/mkinstalldirs $(DESTDIR)$(libdir)
+	$(top_srcdir)/mkinstalldirs $(DESTDIR)$(datadir)
+	$(top_srcdir)/mkinstalldirs $(DESTDIR)$(sysconfdir)
+	$(INSTALL) i8086text $(DESTDIR)$(bindir)
+	if [ "@usegtk@" != "0" ]; then $(INSTALL) i8086gui $(DESTDIR)$(bindir);fi;
+	$(INSTALL) emu.cfg $(DESTDIR)$(sysconfdir)/emu.cfg.example
+	$(INSTALL) rom.bin $(DESTDIR)$(datadir)
+	$(INSTALL) core.dmp $(DESTDIR)$(datadir)
+	$(INSTALL) i8086icon.png $(DESTDIR)$(pixdir)
+	$(INSTALL) devices/*.so $(DESTDIR)$(libdir)
+	$(INSTALL) $(EMUEX) $(DESTDIR)$(examplesdir)
+	$(INSTALL) $(EMUDOCS) $(DESTDIR)$(infodir)$
+
+uninstall:
+	if [ "@usegtk@" != "0" ]; then /bin/rm -f $(DESTDIR)$(bindir)/i8086gui;fi;
+	-/bin/rm -f $(DESTDIR)$(bindir)/i8086text
+	-/bin/rm -f $(DESTDIR)$(sysconfdir)/emu.cfg.example
+	-/bin/rm -f $(DESTDIR)$(datadir)/emu.log
+	-/bin/rm -f $(DESTDIR)$(datadir)/rom.bin
+	-/bin/rm -f $(DESTDIR)$(datadir)/core.dmp
+	-/bin/rm -f $(DESTDIR)$(pixdir)/i8086icon.png
+	-/bin/rm -f $(DESTDIR)$(libdir)/i8086*.so
+	-/bin/rm -f $(DESTDIR)$(examplesdir)/*
+	-/bin/rm -f $(DESTDIR)$(infodir)/README
+	-/bin/rm -f $(DESTDIR)$(infodir)/AUTHORS
+	-/bin/rm -f $(DESTDIR)$(infodir)/ChangeLog
+	-/bin/rm -f $(DESTDIR)$(infodir)/NEWS
+	-/bin/rm -f $(DESTDIR)$(infodir)/COPYING
+	-/bin/rmdir $(DESTDIR)$(bindir)
+	-/bin/rmdir $(DESTDIR)$(devicesdir)
+	-/bin/rmdir $(DESTDIR)$(examplesdir)
+	-/bin/rmdir $(DESTDIR)$(pixdir)
+	-/bin/rmdir $(DESTDIR)$(infodir)
+	-/bin/rmdir $(DESTDIR)$(datadir)
+	-/bin/rmdir $(DESTDIR)$(sysconfdir)
+	-/bin/rmdir $(DESTDIR)$(libdir)
+

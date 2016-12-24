@@ -1,0 +1,125 @@
+i8086emu README
+~~~~~~~~~~~~~~~~
+ i8086emu Copyright (c) 2004 By Joerg Mueller-Hipper, Robert Dinse, Fred Brodmueller, Christian Steineck
+
+ This program is released under the GPL with the additional exemption
+ that compiling, linking, and/or using OpenSSL is allowed. You may
+ provide binary packages linked to the OpenSSL libraries, provided that
+ all other requirements of the GPL are met. 
+ See file COPYING for details.
+ 
+What is it?
+~~~~~~~~~~~
+i8086emu is an multi-platform emulator for the Intel 8086 microprocessor. 
+It has support for dynamically loadable device plugins and some peripherals like a 
+PIT, PIC, 8-segment-displays, buttons and leds. i8086emu comes with an ncurses and 
+an GTK-2 gui. i8086emu should run on most linux distributions and cygwin environments.
+
+Feel free to report bugs, feature requests or comments to perrin_@users.sourceforge.net
+
+
+Requirements:
+~~~~~~~~~~~~~
+ * GTK+ 2.0 or higher (this is available at http://www.gtk.org).
+ * gcc 2.95 or higher
+ * nasm or other assembler for compiling asm-source files (available at http://nasm.sourceforge.net)
+ * for using the i8086beep.so (plugin for accessing the pc-speaker via asm) a suid'ed beep is necessary (http://www.johnath.com/beep)
+ * for compiling this source under Win32 a cygwin installation is required - or just use our win32 binary package :o)
+ 
+Release Notes:
+~~~~~~~~~~~~~~
+* on some misconfigured systems the antialiasing-feature of GTK makes some trouble ... for fixing this change the USEXFT option in
+  the ~/.emu.cfg
+* up-to-date information about this release can be found at http://sourceforge.net/projects/i8086emu/
+* only plain 16bit-binarys (commonly known as COM files, no ELF or EXE) are supported
+
+Autoloading Plugins
+~~~~~~~~~~~~~~~~~~~~
+* i8086emu autoloads plugin librarys if they are specified in ~/.emu.cfg. Remember incrementing the DEVICECOUNT option
+  when adding a plugin.
+  
+Ncurses text-version of i8086emu
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+* for using the text version comment in the ROM-lines in ~/.emu.cfg and comment out the core.dmp - line
+* use i8086text for running the text-version of our emulator with the following command line parameters:
+
+i8086text [Options] filename
+ -c 		-> disables the disassembler - window
+ -oXXXXh 	-> startaddress where filename is loaded to in the i8086 memory
+ -r XXXXh file 	-> when loading a rom file this specifies the CodeSegment value
+ -d file 	-> load memory dumpfile
+ --version 	-> print version information
+ --help		-> print help information
+ 
+ Shortcuts while running the emu:
+ 
+ q       -         quit emulator
+ r       -         change content of registers
+ w       -         change content of memory
+ m       -         change startaddress of displayed memory
+ F1      -         some help
+ F2      -         set a breakpointaddress
+ F3      -         make coredump of current memory
+ F7      -         trace/single step
+ F8      -         next/step over
+ F9      -         run loaded program (until breakpoint or until end)
+ F12     -         CPU reset - jump to rom routines
+ 0-7     -         switch the buttons
+ a-f	 -	   press keyboard keys (note - keyboard is hidden ;op)
+ 
+GTK2 gui-version of i8086emu
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+* use i8086gui for running the gui-version of our emulator 
+
+ here is a list of shortcuts:
+ 
+ CTRL + O	-	Open file
+ CTRL + Q	-	Quit
+ CTRL + M	-	change memory content
+ CTRL + R	-	change registers
+ CTRL + B	-	set breakpoints
+ ALT + 0-9	-	keys of the keyboard unit
+ ALT + a-f	-	keys of the keyboard unit
+ F7		-	trace/single step
+ F8		-	next/step over
+ F9		-	run
+ ESC		-	stop
+ 
+ 
+Config file
+~~~~~~~~~~~~
+ * well I think if you downloaded this piece of goodness you will find the emu.cfg self-explaining ;op
+ * hint: never use core.dmp and rom at the same time
+
+HOWTO write plugins for i8086emu
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * currently the plugin API consists of only a few functions - may be this API will grow in the future
+ * the concept of this API is to register MSG-Handler functions to some events
+ * first function which has to be implemented in every plugin:
+ 
+ void DeviceInit(i8086DeviceCalls *calls)
+ -	this function is called when the plugin is loaded and should init the MsgHandler functions
+ 
+ * a MsgHandler function should have the following prototype:
+ 
+ void MsgHandler(unsigned short msg, unsigned int hParam, unsigned int lParam)
+    - msg could be one of the constants, defined in i8086messages.h
+ 
+ * there are 2 more optional functions which we recommend you to implement
+ 
+    void DeviceReset() - this function is called everytime the CPU-Reset button is hit and should bring 
+    your device in a state of harmony or any kind of standard state;op
+    
+    void DeviceClose() - is called if the emu is closed and should free all used ressources
+    
+ * for examples on how to write a plugin please look in src/devices - think you will figure it out more easily by taking
+   a look at our sources
+   
+ * hint: the plugins have to be linked against i8086error.o i8086messages.o and i8086util.o so far
+ 
+ 
+Additions
+~~~~~~~~~
+
+The dissambler code (src/disasm) was actually taken from NASM 0.98.38 (http://nasm.sourceforge.net)
+Thanks to the NASM team :)
