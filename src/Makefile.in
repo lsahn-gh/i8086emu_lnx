@@ -17,7 +17,6 @@ mandir = @mandir@
 sysconfdir= @sysconfdir@/@PACKAGE@
 INSTALL=cp
 
-WIN32=`if [ "$(TERM)" = "cygwin" ]; then echo "-D _WIN32"; fi;`
 CFLAGS=@CFLAGS@
 CGUIFLGS=`if [ "$(TERM)" = "cygwin" ]; then echo "-mwindows"; fi;`
 CLIBS=`if [ "$(TERM)" != "cygwin" ]; then echo "-ldl"; fi;`
@@ -35,7 +34,7 @@ all:
 	if [ @NCURSES_SYSTEM@ -eq 1 ]; then make i8086text;fi;
 
 i8086gui: ${DEVICES} i8086gui.o i8086gui_emufuncs.o i8086gui_error.o i8086gui_util.o i8086gui_paint.o ${EMUOBJ}
-	gcc ${CFLAGS} ${CGUIFLGS} -o i8086gui i8086gui.o i8086gui_emufuncs.o i8086gui_error.o i8086gui_util.o i8086gui_paint.o ${EMUOBJ} `pkg-config --cflags gtk+-2.0` `pkg-config --libs gtk+-2.0`
+	gcc ${CFLAGS} -o i8086gui i8086gui.o i8086gui_emufuncs.o i8086gui_error.o i8086gui_util.o i8086gui_paint.o ${EMUOBJ} -ldl `pkg-config --cflags gtk+-2.0` `pkg-config --libs gtk+-2.0`
 i8086text: i8086text.o ${EMUOBJ} ${DEVICES}
 	gcc ${CFLAGS} -o i8086text i8086text.o ${EMUOBJ} -lncurses ${CLIBS}
 
@@ -43,7 +42,7 @@ i8086devices: i8086text ${DEVICES}
 
 #GUI
 i8086gui.o: i8086gui.c i8086gui.h
-	gcc ${CFLAGS} ${WIN32} -DPIXDIR=\"$(pixdir)\" -DVERSION_NUMBER=\"$(VERS)\" -D GTK_ENABLE_BROKEN -c i8086gui.c `pkg-config --cflags gtk+-2.0`
+	gcc ${CFLAGS} -DPIXDIR=\"$(pixdir)\" -DVERSION_NUMBER=\"$(VERS)\" -D GTK_ENABLE_BROKEN -c i8086gui.c `pkg-config --cflags gtk+-2.0`
 	
 i8086gui_emufuncs.o: i8086gui_emufuncs.c i8086gui_emufuncs.h
 	gcc ${CFLAGS} -c i8086gui_emufuncs.c `pkg-config --cflags gtk+-2.0`
@@ -52,10 +51,10 @@ i8086gui_error.o: i8086gui_error.c i8086gui_error.h
 	gcc ${CFLAGS} -c i8086gui_error.c	`pkg-config --cflags gtk+-2.0`
 	
 i8086gui_util.o: i8086gui_util.c i8086gui_util.h
-	gcc ${CFLAGS} ${WIN32} -D GTK_ENABLE_BROKEN -c i8086gui_util.c	`pkg-config --cflags gtk+-2.0`
+	gcc ${CFLAGS} -D GTK_ENABLE_BROKEN -c i8086gui_util.c	`pkg-config --cflags gtk+-2.0`
 	
 i8086gui_paint.o: i8086gui_paint.c i8086gui_paint.h
-	gcc ${CFLAGS} -DPIXDIR=\"$(pixdir)\" -DVERSION_NUMBER=\"$(VERS)\" -D GTK_ENABLE_BROKEN -c ${WIN32} i8086gui_paint.c	`pkg-config --cflags gtk+-2.0`
+	gcc ${CFLAGS} -DPIXDIR=\"$(pixdir)\" -DVERSION_NUMBER=\"$(VERS)\" -D GTK_ENABLE_BROKEN -c i8086gui_paint.c	`pkg-config --cflags gtk+-2.0`
 
 #GUI-END
 
@@ -68,7 +67,7 @@ i8086proc.o: i8086proc.c i8086proc.h
 	gcc ${CFLAGS} -DVERSION_NUMBER=\"$(VERS)\" -c i8086proc.c
 
 i8086error.o: i8086error.c
-	gcc ${CFLAGS} ${WIN32} -c i8086error.c
+	gcc ${CFLAGS} -fPIC -c i8086error.c
 
 i8086datatrans.o: i8086datatrans.c
 	gcc ${CFLAGS} -c i8086datatrans.c
@@ -86,7 +85,7 @@ i8086logic.o: i8086logic.c
 	gcc ${CFLAGS} -c i8086logic.c
 
 i8086util.o: i8086util.c
-	gcc ${CFLAGS} -c i8086util.c
+	gcc ${CFLAGS} -fPIC -c i8086util.c
 
 i8086controltrans.o: i8086controltrans.c
 	gcc ${CFLAGS} -c i8086controltrans.c
@@ -95,7 +94,7 @@ i8086wrapper.o: i8086wrapper.c
 	gcc ${CFLAGS} -c i8086wrapper.c
 
 i8086messages.o: i8086messages.c i8086messages.h
-	gcc ${CFLAGS} ${WIN32} -c  i8086messages.c
+	gcc ${CFLAGS} -fPIC -c  i8086messages.c
 
 i8086strings.o: i8086strings.c i8086strings.h
 	gcc ${CFLAGS} -c i8086strings.c
@@ -109,7 +108,7 @@ disasm/*.o: disasm/disasm.c  disasm/insnsa.c disasm/insnsd.c disasm/regs.c disas
 	gcc ${CFLAGS} -c disasm/sync.c -o disasm/sync.o
 
 i8086config.o: i8086config.c i8086config.h
-	gcc ${CFLAGS} ${WIN32} -DDATADIR=\"$(DESTDIR)$(sysconfdir)\" -c i8086config.c
+	gcc ${CFLAGS} -DDATADIR=\"$(DESTDIR)$(sysconfdir)\" -c i8086config.c
 
 i8086devices.o: i8086devices.c i8086devices.h
 	gcc ${CFLAGS} -c -DVERSION_NUMBER=\"$(VERS)\" i8086devices.c
@@ -122,13 +121,13 @@ devices/i8086pit.so: devices/i8086pit.c devices/i8086pit.h i8086error.o i8086mes
 	gcc ${CFLAGS} -shared -fPIC devices/i8086pit.c i8086error.o i8086messages.o i8086util.o -o devices/i8086pit.so -lpthread
 
 devices/i8086beep.so: devices/i8086beep.c i8086error.o i8086messages.o i8086util.o
-	gcc ${CFLAGS} ${WIN32} -shared -fPIC devices/i8086beep.c i8086error.o i8086messages.o i8086util.o -o devices/i8086beep.so
+	gcc ${CFLAGS} -shared -fPIC devices/i8086beep.c i8086error.o i8086messages.o i8086util.o -o devices/i8086beep.so
 	
 devices/i8086sic.so: devices/i8086sic.c i8086error.o i8086messages.o
-	if [ "@usegtk@" != "0" ]; then gcc ${CFLAGS} ${WIN32} -shared -fPIC devices/i8086sic.c i8086error.o i8086messages.o -o devices/i8086sic.so `pkg-config --cflags gtk+-2.0` `pkg-config --libs gtk+-2.0`;fi;
+	if [ "@usegtk@" != "0" ]; then gcc ${CFLAGS} -shared -fPIC devices/i8086sic.c i8086error.o i8086messages.o -o devices/i8086sic.so `pkg-config --cflags gtk+-2.0` `pkg-config --libs gtk+-2.0`;fi;
 
 devices/i8086vga.so: devices/i8086vga.c i8086error.o i8086messages.o
-	if [ 1 -eq 1 ]; then gcc ${CFLAGS} ${WIN32} -shared -fPIC devices/i8086vga.c i8086error.o i8086messages.o -o devices/i8086vga.so -lpthread `pkg-config --cflags gtk+-2.0` `pkg-config --libs gtk+-2.0`;fi;
+	if [ 1 -eq 1 ]; then gcc ${CFLAGS} -shared -fPIC devices/i8086vga.c i8086error.o i8086messages.o -o devices/i8086vga.so -lpthread `pkg-config --cflags gtk+-2.0` `pkg-config --libs gtk+-2.0`;fi;
 #Devices-End
 
 
