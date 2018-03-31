@@ -17,6 +17,17 @@ an GTK-2 gui. i8086emu should run on most linux distributions and cygwin environ
 
 Feel free to report bugs, feature requests or comments to perrin_@users.sourceforge.net
 
+installation:
+~~~~~~~~~~~~~
+
+$ cd i8086emu_lnx
+$ ./configure
+$ cd src
+
+  [Optional] GUI
+  $ cd src
+  $ make i8086gui
+
 
 Requirements:
 ~~~~~~~~~~~~~
